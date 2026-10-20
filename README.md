@@ -869,7 +869,7 @@ Person 2 is responsible for business logic, persistence, and validation governin
 
 | Method | Parameters | Return Type | Detailed Behavior | Validation & Failures |
 |---|---|---|---|---|
-| `processPayrollForPeriod` | `String period, String actorId, String idempotencyKey` | `PayrollProcessResult` | 1. Validates period format (`^\d{4}-(0[1-9]\|1[0-2])$`).<br>2. Verifies period is not already `FINALIZED`.<br>3. Checks Redis idempotency key: if exists and finished, returns previous result.<br>4. Fetches all `ACTIVE` employees.<br>5. For each employee, queries attendance & approved leaves in period.<br>6. Calculates prorated gross pay, tax deductions, and net pay.<br>7. Saves `PayrollRecord` documents in batch.<br>8. Saves idempotency key in Redis with 24h TTL. | Throws `BadRequestException` on invalid period string.<br>Throws `ConflictException` if period is `FINALIZED` and locked.<br>Handles partial failure by rolling back through transactional boundary or registering failure with HR-REWIND. |
+| `processPayrollForPeriod` | `String period, String actorId, String idempotencyKey` | `PayrollProcessResult` | 1. Validates period format (`^\d{4}-(0[1-9] or 1[0-2])$`).<br>2. Verifies period is not already `FINALIZED`.<br>3. Checks Redis idempotency key: if exists and finished, returns previous result.<br>4. Fetches all `ACTIVE` employees.<br>5. For each employee, queries attendance & approved leaves in period.<br>6. Calculates prorated gross pay, tax deductions, and net pay.<br>7. Saves `PayrollRecord` documents in batch.<br>8. Saves idempotency key in Redis with 24h TTL. | Throws `BadRequestException` on invalid period string.<br>Throws `ConflictException` if period is `FINALIZED` and locked.<br>Handles partial failure by rolling back through transactional boundary or registering failure with HR-REWIND. |
 | `getEmployeePayslip` | `String employeeId, String period, UserPrincipal actor` | `PayrollResponse` | Authorizes caller (EMPLOYEE can only view own payslip; HR/ADMIN can view any). Returns detailed salary breakdown DTO. | Throws `ResourceNotFoundException` if no payroll generated for (employeeId, period).<br>Throws `AccessDeniedException` if unauthorized. |
 | `finalizePeriod` | `String period, UserPrincipal actor` | `void` | Changes all records for `period` from `PROCESSED` to `FINALIZED`. Locks the period against further modifications. | Throws `ConflictException` if period has records in `DRAFT` or already `FINALIZED`. |
 
@@ -1565,9 +1565,13 @@ Redis 7 serves as the distributed cache, atomic rate-limit tracker, and idempote
 ### 17.1 Hash Function & Virtual Nodes
 - **Murmur3 64-bit:** Generates deterministic hashes with uniform distribution across the 64-bit integer space ($[-2^{63}, 2^{63}-1]$).
 - **Virtual Node Layout:** Each physical partition or shard (e.g. `shard-alpha`, `shard-beta`, `shard-gamma`) is assigned 150 virtual nodes on the ring:
-  $$\text{VNodeHash} = \text{Murmur3}(\text{shardId} + \text{"#vn#"} + i) \quad \text{for } i \in [0, 149]$$
+  $$
+\text{VNodeHash} = \text{Murmur3}(\text{shardId} + "#vn#" + i) \quad \text{for } i \in [0, 149]
+$$
 - **Key Assignment:**
-  $$\text{KeyHash} = \text{Murmur3}(\text{tenantOrEmployeeKey})$$
+  $$
+\text{KeyHash} = \text{Murmur3}(\text{tenantOrEmployeeKey})
+$$
   The ring selects the first virtual node whose hash is $\ge \text{KeyHash}$. If $\text{KeyHash}$ is greater than all nodes on the ring, it wraps around to the lowest hash on the ring.
 
 ### 17.2 Shard Addition and Minimal Remapping
@@ -2092,5 +2096,3 @@ A file or feature is considered **Done** only when all of the following criteria
 | **Total Stack** | **83** | **0** | **120** | **Ready for Team Implementation** |
 
 > **Ready for implementation! Team members (Person 1, Person 2, Person 3, Person 4) can now open their assigned files and begin coding against these specifications.**
-#   W o r k l y n  
- 
