@@ -1,0 +1,11 @@
+app:
+  jwt:
+    secret: test-only-secret-which-is-at-least-32-bytes-long-123456
+    expiration-ms: 86400000
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/worklyn_test
+    redis:
+      host: localhost
+      port: 6379
