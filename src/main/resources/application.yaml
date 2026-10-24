@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: Worklyn
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/worklyn_db}
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  security:
+    admin:
+      username: ${APP_ADMIN_USERNAME:worklyn-admin}
+      password: ${APP_ADMIN_PASSWORD}
+  jwt:
+    secret: ${APP_JWT_SECRET:9f8a3c8d1e2b4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a}
+    expiration-ms: ${APP_JWT_EXPIRATION_MS:86400000}
+  crawler:
+    allowed-domains: ${APP_CRAWLER_ALLOWED_DOMAINS:careers.example.com,jobs.techcorp.io}
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
+    max-response-size-bytes: 2097152
+  shortlink:
+    base-url: ${APP_SHORTLINK_BASE_URL:http://localhost:8080/s/}
+    default-ttl-days: 30
+  idgen:
+    datacenter-id: ${APP_IDGEN_DATACENTER_ID:1}
+    worker-id: ${APP_IDGEN_WORKER_ID:1}
+  hashing:
+    virtual-nodes: 150
+  rewind:
+    lock-lease-seconds: 10
+    max-retries: 3
+  ratelimit:
+    authenticated:
+      capacity: 100
+      refill-rate: 10.0
+    public:
+      capacity: 20
+      refill-rate: 2.0
+    expensive:
+      capacity: 5
+      refill-rate: 0.2
