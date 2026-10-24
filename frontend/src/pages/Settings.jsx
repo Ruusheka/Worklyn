@@ -5,6 +5,7 @@ import Button from '../components/common/Button.jsx';
 import Input from '../components/common/Input.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../components/common/Toast.jsx';
+import { employeeApi } from '../api/employeeApi.js';
 
 export function Settings() {
   const { user } = useAuth();
@@ -41,13 +42,41 @@ export function Settings() {
     { id: 'security', label: 'Security & Sessions', icon: Shield },
   ];
 
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const myProf = await employeeApi.getMyProfile();
+        if (myProf) {
+          setProfileForm(prev => ({
+            ...prev,
+            firstName: myProf.firstName || prev.firstName,
+            lastName: myProf.lastName || prev.lastName,
+            email: myProf.email || prev.email,
+            designation: myProf.designation || prev.designation
+          }));
+        }
+      } catch (err) {
+        // Fall back gracefully to user from context
+      }
+    }
+    fetchProfile();
+  }, []);
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setIsSaving(true);
-    // Simulate save
-    await new Promise(r => setTimeout(r, 800));
-    setIsSaving(false);
-    addToast('Profile settings saved successfully!', 'success');
+    try {
+      await employeeApi.updateMyProfile({
+        firstName: profileForm.firstName,
+        lastName: profileForm.lastName,
+        designation: profileForm.designation
+      });
+      addToast('Profile settings saved successfully!', 'success');
+    } catch (err) {
+      addToast(err.message || 'Failed to save profile settings', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (

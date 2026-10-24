@@ -50,7 +50,7 @@ public class EmployeeService {
 
     public EmployeeResponse createEmployee(CreateEmployeeRequest req, UserPrincipal actor) {
         requireAny(actor, "ROLE_ADMIN", "ROLE_HR");
-        String code = req.employeeCode().trim().toUpperCase();
+        String code = (req.employeeCode() != null && !req.employeeCode().isBlank()) ? req.employeeCode().trim().toUpperCase() : generateUniqueEmployeeCode();
         String email = req.email().trim().toLowerCase();
 
         if (employees.existsByEmployeeCode(code)) {
@@ -95,7 +95,7 @@ public class EmployeeService {
         e.setEmail(email);
         e.setDepartment(req.department());
         e.setDesignation(req.designation().trim());
-        e.setDateOfJoining(req.dateOfJoining());
+        e.setDateOfJoining(req.dateOfJoining() != null ? req.dateOfJoining() : java.time.LocalDate.now());
         e.setStatus(EmployeeStatus.ACTIVE);
         e.setBaseSalary(req.baseSalary());
         e.setManagerId(blankToNull(req.managerId()));
@@ -178,6 +178,57 @@ public class EmployeeService {
         q.with(pageable);
         List<EmployeeResponse> items = mongo.find(q, Employee.class).stream().map(EmployeeResponse::from).toList();
         return PagedResponse.from(new PageImpl<>(items, pageable, total));
+    }
+
+    public EmployeeResponse getMyProfile(UserPrincipal actor) {
+        if (actor == null) throw new AccessDeniedException("Authentication required.");
+        Employee emp = null;
+        if (actor.getEmployeeId() != null && !actor.getEmployeeId().isBlank())
+            emp = employees.findById(actor.getEmployeeId()).orElse(null);
+        if (emp == null && actor.getId() != null)
+            emp = employees.findByUserId(actor.getId()).orElse(null);
+        if (emp == null && actor.getEmail() != null)
+            emp = employees.findByEmailIgnoreCase(actor.getEmail().trim()).orElse(null);
+        if (emp == null) {
+            Employee e = new Employee();
+            e.setEmployeeCode("EMP-ADMIN-" + actor.getId().substring(0, Math.min(6, actor.getId().length())));
+            e.setUserId(actor.getId());
+            e.setFirstName("Admin"); e.setLastName("User"); e.setEmail(actor.getEmail());
+            e.setDepartment(Department.HUMAN_RESOURCES); e.setDesignation("System Administrator");
+            e.setDateOfJoining(java.time.LocalDate.now()); e.setStatus(EmployeeStatus.ACTIVE);
+            e.setBaseSalary(new java.math.BigDecimal("120000.00"));
+            emp = employees.save(e);
+        }
+        return EmployeeResponse.from(emp);
+    }
+
+    public EmployeeResponse updateMyProfile(UpdateMyProfileRequest req, UserPrincipal actor) {
+        if (actor == null) throw new AccessDeniedException("Authentication required.");
+        Employee emp = null;
+        if (actor.getEmployeeId() != null && !actor.getEmployeeId().isBlank())
+            emp = employees.findById(actor.getEmployeeId()).orElse(null);
+        if (emp == null && actor.getId() != null)
+            emp = employees.findByUserId(actor.getId()).orElse(null);
+        if (emp == null && actor.getEmail() != null)
+            emp = employees.findByEmailIgnoreCase(actor.getEmail().trim()).orElse(null);
+        if (emp == null) throw new ResourceNotFoundException("EMPLOYEE_NOT_FOUND", "Employee profile not found.");
+        if (req.firstName() != null && !req.firstName().isBlank()) emp.setFirstName(req.firstName().trim());
+        if (req.lastName() != null && !req.lastName().isBlank()) emp.setLastName(req.lastName().trim());
+        if (req.designation() != null && !req.designation().isBlank() && hasAny(actor, "ROLE_ADMIN", "ROLE_HR"))
+            emp.setDesignation(req.designation().trim());
+        Employee saved = employees.save(emp);
+        evict(saved.getId());
+        return EmployeeResponse.from(saved);
+    }
+
+    private String generateUniqueEmployeeCode() {
+        for (int i = 0; i < 50; i++) {
+            String candidate = "EMP-" + (int)(1000 + Math.random() * 9000);
+            if (!employees.existsByEmployeeCode(candidate)) {
+                return candidate;
+            }
+        }
+        return "EMP-" + (System.currentTimeMillis() % 100000);
     }
 
     private void evict(String id) {

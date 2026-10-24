@@ -26,6 +26,10 @@ public class EmployeeController {
     public EmployeeResponse update(@PathVariable String id,@Valid @RequestBody UpdateEmployeeRequest request,@AuthenticationPrincipal UserPrincipal actor){return service.updateEmployee(id,request,actor);}
     @PatchMapping("/{id}/status") @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public EmployeeResponse updateStatus(@PathVariable String id,@Valid @RequestBody UpdateEmployeeStatusRequest request,@AuthenticationPrincipal UserPrincipal actor){return service.updateStatus(id,request.status(),actor);}
+    @GetMapping("/me") @PreAuthorize("isAuthenticated()")
+    public EmployeeResponse getMyProfile(@AuthenticationPrincipal UserPrincipal actor){return service.getMyProfile(actor);}
+    @PatchMapping("/me") @PreAuthorize("isAuthenticated()")
+    public EmployeeResponse updateMyProfile(@Valid @RequestBody UpdateMyProfileRequest req,@AuthenticationPrincipal UserPrincipal actor){return service.updateMyProfile(req,actor);}
     @GetMapping @PreAuthorize("hasAnyRole('ADMIN','HR','MANAGER')")
     public PagedResponse<EmployeeResponse> search(@RequestParam(required=false) String q,@RequestParam(required=false) Department department,
        @RequestParam(required=false) EmployeeStatus status,@RequestParam(defaultValue="0") int page,

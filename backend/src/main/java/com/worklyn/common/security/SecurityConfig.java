@@ -39,6 +39,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/register").hasRole("ADMIN")
                 .requestMatchers("/api/v1/auth/me").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/employees").hasAnyRole("ADMIN","HR")
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/employees/me").authenticated()
+                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/v1/employees/me").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/employees/**").hasAnyRole("ADMIN","HR")
                 .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/v1/employees/**").hasAnyRole("ADMIN","HR")
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/employees").hasAnyRole("ADMIN","HR","MANAGER")

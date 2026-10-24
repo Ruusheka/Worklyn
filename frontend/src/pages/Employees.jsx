@@ -101,13 +101,23 @@ export function Employees() {
 
     setIsSubmitting(true);
     try {
-      const generatedCode = formData.employeeCode.trim() || `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
-      await employeeApi.createEmployee({
-        ...formData,
-        employeeCode: generatedCode,
+      const payload = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        department: formData.department,
+        designation: formData.designation.trim(),
         baseSalary: parseFloat(formData.baseSalary),
-      });
-      addToast(`Employee ${formData.firstName} ${formData.lastName} created!`, 'success');
+        dateOfJoining: formData.dateOfJoining || new Date().toISOString().split('T')[0],
+      };
+      if (formData.employeeCode && formData.employeeCode.trim()) {
+        payload.employeeCode = formData.employeeCode.trim().toUpperCase();
+      }
+      if (formData.phone && formData.phone.trim()) {
+        payload.phone = formData.phone.trim();
+      }
+      const created = await employeeApi.createEmployee(payload);
+      addToast(`Employee ${created.firstName || formData.firstName} created (${created.employeeCode || 'code assigned'})!`, 'success');
       setIsAddModalOpen(false);
       setFormData({
         employeeCode: '',
