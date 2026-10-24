@@ -1,0 +1,673 @@
+{
+  "info": {
+    "_postman_id": "worklyn-master-collection-p4",
+    "name": "Worklyn — Master Verification Suite",
+    "description": "Comprehensive integration test suite covering all Worklyn modules (Persons 1, 2, 3) executed by Person 4 for E2E verification.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01-Authentication",
+      "item": [
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Response has JWT token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.be.a('string');",
+                  "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                  "    if (jsonData.user && jsonData.user.id) { pm.environment.set(\"user_id\", jsonData.user.id); }",
+                  "    if (jsonData.user && jsonData.user.employeeId) { pm.environment.set(\"employee_id\", jsonData.user.employeeId); }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hr.admin@worklyn.io\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Register User (Admin Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Response contains created user\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.email).to.eql(\"test.engineer@worklyn.io\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test.engineer@worklyn.io\",\n  \"password\": \"Password@123\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"roles\": [\"ROLE_EMPLOYEE\"]\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Contains user roles\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.roles).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02-Employee-Management",
+      "item": [
+        {
+          "name": "Create Employee Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Returns valid employeeCode and id\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.be.a('string');",
+                  "    pm.environment.set(\"employee_id\", jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"EMP-9901\",\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Rivera\",\n  \"email\": \"alex.rivera@worklyn.io\",\n  \"department\": \"ENGINEERING\",\n  \"designation\": \"DevOps Specialist\",\n  \"dateOfJoining\": \"2026-11-01\",\n  \"baseSalary\": 98000.00\n}"
+            },
+            "url": { "raw": "{{base_url}}/employees", "host": ["{{base_url}}"], "path": ["employees"] }
+          }
+        },
+        {
+          "name": "Get Employee by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Employee record has valid schema\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('employeeCode');",
+                  "    pm.expect(jsonData).to.have.property('department');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/employees/{{employee_id}}", "host": ["{{base_url}}"], "path": ["employees", "{{employee_id}}"] }
+          }
+        },
+        {
+          "name": "Update Employee Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Designation updated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.designation).to.eql(\"Lead DevOps Specialist\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"designation\": \"Lead DevOps Specialist\",\n  \"baseSalary\": 105000.00\n}"
+            },
+            "url": { "raw": "{{base_url}}/employees/{{employee_id}}", "host": ["{{base_url}}"], "path": ["employees", "{{employee_id}}"] }
+          }
+        },
+        {
+          "name": "Search Employees by Department",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Response is PagedResponse envelope\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('content');",
+                  "    pm.expect(jsonData).to.have.property('totalElements');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/employees?department=ENGINEERING&page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["employees"],
+              "query": [
+                { "key": "department", "value": "ENGINEERING" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03-Attendance",
+      "item": [
+        {
+          "name": "Record Daily Check-in (Idempotent)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 200\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "pm.test(\"Attendance status is PRESENT or LATE\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.be.oneOf(['PRESENT', 'LATE']);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "X-Idempotency-Key", "value": "chk_in_test_001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timestamp\": \"2026-10-24T08:55:00.000Z\",\n  \"idempotencyKey\": \"chk_in_test_001\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/attendance/check-in", "host": ["{{base_url}}"], "path": ["attendance", "check-in"] }
+          }
+        },
+        {
+          "name": "Record Daily Check-out",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Check-out time recorded\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.checkOutTime).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timestamp\": \"2026-10-24T17:30:00.000Z\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/attendance/check-out", "host": ["{{base_url}}"], "path": ["attendance", "check-out"] }
+          }
+        },
+        {
+          "name": "Query Attendance History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"History is an array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/attendance/my-history", "host": ["{{base_url}}"], "path": ["attendance", "my-history"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04-Leave-Management",
+      "item": [
+        {
+          "name": "Query Leave Balances",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Has casual, sick, earned quotas\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('casual');",
+                  "    pm.expect(jsonData).to.have.property('sick');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/leave/balance", "host": ["{{base_url}}"], "path": ["leave", "balance"] }
+          }
+        },
+        {
+          "name": "Apply for Leave",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Returns pending leave request id\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('PENDING');",
+                  "    pm.environment.set(\"leave_request_id\", jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"CASUAL\",\n  \"startDate\": \"2026-11-12\",\n  \"endDate\": \"2026-11-13\",\n  \"reason\": \"Personal family matter\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/leave/apply", "host": ["{{base_url}}"], "path": ["leave", "apply"] }
+          }
+        },
+        {
+          "name": "Approve Leave Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Status is APPROVED\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('APPROVED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Approved. Work covered by team lead.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/leave/{{leave_request_id}}/approve", "host": ["{{base_url}}"], "path": ["leave", "{{leave_request_id}}", "approve"] }
+          }
+        },
+        {
+          "name": "Cancel Leave Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/leave/{{leave_request_id}}/cancel", "host": ["{{base_url}}"], "path": ["leave", "{{leave_request_id}}", "cancel"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05-Payroll",
+      "item": [
+        {
+          "name": "Process Monthly Payroll (Idempotent)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Batch total calculated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('totalNetDisbursement');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "X-Idempotency-Key", "value": "pay_run_2026_10_001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"2026-10\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/payroll/process", "host": ["{{base_url}}"], "path": ["payroll", "process"] }
+          }
+        },
+        {
+          "name": "View Employee Payslip",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Contains net pay and breakdowns\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('netPay');",
+                  "    pm.expect(jsonData).to.have.property('earnings');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/payroll/payslip?period=2026-10", "host": ["{{base_url}}"], "path": ["payroll", "payslip"], "query": [{ "key": "period", "value": "2026-10" }] }
+          }
+        },
+        {
+          "name": "Finalize Payroll Period",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Period status is FINALIZED\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('FINALIZED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"2026-10\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/payroll/finalize", "host": ["{{base_url}}"], "path": ["payroll", "finalize"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06-Distributed-Modules",
+      "item": [
+        {
+          "name": "Autocomplete Prefix Query",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Returns suggestion array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/autocomplete/employees?q=Da", "host": ["{{base_url}}"], "path": ["autocomplete", "employees"], "query": [{ "key": "q", "value": "Da" }] }
+          }
+        },
+        {
+          "name": "Create Short-Link",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Short code returned\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('shortCode');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destinationUrl\": \"https://worklyn.io/docs/payroll\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/shortlinks", "host": ["{{base_url}}"], "path": ["shortlinks"] }
+          }
+        },
+        {
+          "name": "Inspect Consistent Hash Ring",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Ring has shards\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('shards');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/system/hash-ring", "host": ["{{base_url}}"], "path": ["system", "hash-ring"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07-HR-REWIND-Engine",
+      "item": [
+        {
+          "name": "List Tracked Workflows",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Workflows returned as array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    if (jsonData.length > 0) { pm.environment.set(\"workflow_id\", jsonData[0].workflowId); }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/rewind/workflows", "host": ["{{base_url}}"], "path": ["rewind", "workflows"] }
+          }
+        },
+        {
+          "name": "Generate Non-Mutating Recovery Preview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Preview has actions array and invariant flag\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.actions).to.be.an('array');",
+                  "    pm.expect(jsonData).to.have.property('invariantsSatisfied');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt_token}}" }],
+            "url": { "raw": "{{base_url}}/rewind/workflows/{{workflow_id}}/preview", "host": ["{{base_url}}"], "path": ["rewind", "workflows", "{{workflow_id}}", "preview"] }
+          }
+        },
+        {
+          "name": "Execute Dependency-Aware Recovery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 409\", function () { pm.expect(pm.response.code).to.be.oneOf([200, 409]); });",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('COMPLETED');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "X-Idempotency-Key", "value": "rewind_rec_test_001" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": { "raw": "{{base_url}}/rewind/workflows/{{workflow_id}}/recover", "host": ["{{base_url}}"], "path": ["rewind", "workflows", "{{workflow_id}}", "recover"] }
+          }
+        }
+      ]
+    }
+  ]
+}

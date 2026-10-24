@@ -35,3 +35,10 @@ build/
 .env.*
 !.env.example
 backend/.env
+
+# Node & Frontend Build
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+*.log

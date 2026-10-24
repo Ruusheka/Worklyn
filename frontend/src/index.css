@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary-wine: #541923;
+  --color-deep-wine: #351018;
+  --color-wine-accent: #702C37;
+  --color-warm-beige: #F3E6D6;
+  --color-light-cream: #FBF5EC;
+  --color-soft-beige: #EAD8C3;
+  --color-muted-gold: #C9A574;
+  --color-main-text: #342522;
+  --color-muted-text: #89766C;
+  --color-success: #387A58;
+  --color-warning: #D69A43;
+  --color-error: #B85C55;
+}
+
+body {
+  margin: 0;
+  background-color: #F3E6D6;
+  color: #342522;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for desktop views */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F3E6D6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D8C3AA;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #702C37;
+}
+
+/* Consistent card border and shadow */
+.card-theme {
+  background-color: #FBF5EC;
+  border: 1px solid #EAD8C3;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(53, 16, 24, 0.03);
+}
+
+.input-theme {
+  background-color: #FFFFFF;
+  border: 1px solid #EAD8C3;
+  color: #342522;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.input-theme:focus {
+  outline: none;
+  border-color: #702C37;
+  box-shadow: 0 0 0 2px rgba(84, 25, 35, 0.15);
+}
