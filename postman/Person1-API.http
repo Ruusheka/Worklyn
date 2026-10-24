@@ -1,0 +1,22 @@
+@baseUrl = http://localhost:8082
+@token = paste-jwt-here
+
+### Health
+GET {{baseUrl}}/actuator/health
+
+### Login (replace credentials)
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "replace-with-your-admin-password"
+}
+
+### Current user
+GET {{baseUrl}}/api/v1/auth/me
+Authorization: Bearer {{token}}
+
+### Search employees
+GET {{baseUrl}}/api/v1/employees?page=0&size=20&sortBy=createdAt&direction=desc
+Authorization: Bearer {{token}}
