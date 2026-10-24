@@ -1,3 +1,33 @@
 spring:
   application:
     name: Worklyn
+  security:
+    user:
+      name: ${SPRING_SECURITY_USER_NAME:emp-001}
+      password: ${SPRING_SECURITY_USER_PASSWORD:password123}
+      roles: ADMIN,HR,EMPLOYEE,MANAGER
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/worklyn_db}
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+
+worklyn:
+  corporate-timezone: ${WORKLYN_CORPORATE_TIMEZONE:Asia/Kolkata}
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    redis:
+      enabled: false

@@ -1,0 +1,3 @@
+package com.worklyn.modules.payroll.dto;
+import com.worklyn.modules.payroll.model.*;import java.math.BigDecimal;import java.time.Instant;
+public record PayrollResponse(String id,String employeeId,String payrollPeriod,BigDecimal baseSalary,Integer workingDays,Integer presentDays,Integer paidLeaveDays,Integer unpaidLeaveDays,BigDecimal grossPay,BigDecimal taxDeduction,BigDecimal netPay,PayrollStatus status,Instant processedAt){public static PayrollResponse from(PayrollRecord r){return new PayrollResponse(r.getId(),r.getEmployeeId(),r.getPayrollPeriod(),r.getBaseSalary(),r.getWorkingDays(),r.getPresentDays(),r.getPaidLeaveDays(),r.getUnpaidLeaveDays(),r.getGrossPay(),r.getTaxDeduction(),r.getNetPay(),r.getStatus(),r.getProcessedAt());}}
