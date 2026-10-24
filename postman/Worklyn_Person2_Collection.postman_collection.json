@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "worklyn-person-2-collection",
-    "name": "Worklyn Master Collection - Person 2 (Attendance, Leave, Payroll)",
+    "name": "Worklyn Person 2 Collection (Attendance, Leave, Payroll)",
     "description": "Ready-to-run Postman collection for Worklyn Person 2 modules: Attendance, Leave Management, and Payroll.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

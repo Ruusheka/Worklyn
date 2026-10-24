@@ -12,8 +12,8 @@ This guide provides instructions, request bodies, expected responses, and role p
 ## 1. Quick Setup & Credentials
 
 ### Import Files into Postman
-1. **Collection:** [`postman/Worklyn_Master_Collection.postman_collection.json`](Worklyn_Master_Collection.postman_collection.json)
-2. **Environment (Optional):** [`postman/Worklyn_Environment.postman_environment.json`](Worklyn_Environment.postman_environment.json)
+1. **Collection:** [`postman/Worklyn_Person2_Collection.postman_collection.json`](Worklyn_Person2_Collection.postman_collection.json)
+2. **Environment (Optional):** [`postman/Worklyn_Person2_Environment.postman_environment.json`](Worklyn_Person2_Environment.postman_environment.json)
 
 *(The collection has embedded variables, so it works even if you keep the environment dropdown set to **No environment**).*
 
