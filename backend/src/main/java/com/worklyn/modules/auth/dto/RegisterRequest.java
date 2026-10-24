@@ -1,0 +1,8 @@
+package com.worklyn.modules.auth.dto;
+import com.worklyn.modules.auth.model.Role;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.util.Set;
+public record RegisterRequest(@NotBlank @Email String email, @NotBlank @Size(min=12,max=72) String password,
+                              Set<Role> roles, String employeeId) { }
