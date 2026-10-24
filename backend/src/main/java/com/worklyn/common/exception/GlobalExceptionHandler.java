@@ -90,6 +90,22 @@ public class GlobalExceptionHandler {
         return response(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "Parameter '" + ex.getName() + "' has invalid value: " + ex.getValue(), req, null);
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ApiErrorResponse> handleResponseStatus(org.springframework.web.server.ResponseStatusException ex, HttpServletRequest request) {
+        org.springframework.http.HttpStatusCode statusCode = ex.getStatusCode();
+        HttpStatus status = HttpStatus.resolve(statusCode.value());
+        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+        ApiErrorResponse body = ApiErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .code(status.name())
+                .message(ex.getReason() != null ? ex.getReason() : ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(status).body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex, HttpServletRequest req) {
         log.error("Unhandled error for path {}", req.getRequestURI(), ex);
