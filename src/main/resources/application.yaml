@@ -1,6 +1,11 @@
 spring:
   application:
     name: Worklyn
+  security:
+    user:
+      name: ${SPRING_SECURITY_USER_NAME:emp-001}
+      password: ${SPRING_SECURITY_USER_PASSWORD:password123}
+      roles: ADMIN,HR,EMPLOYEE,MANAGER
   data:
     mongodb:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/worklyn_db}
@@ -12,11 +17,23 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+worklyn:
+  corporate-timezone: ${WORKLYN_CORPORATE_TIMEZONE:Asia/Kolkata}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    redis:
+      enabled: false
+
 app:
   security:
     admin:
       username: ${APP_ADMIN_USERNAME:worklyn-admin}
-      password: ${APP_ADMIN_PASSWORD}
+      password: ${APP_ADMIN_PASSWORD:admin123}
   jwt:
     secret: ${APP_JWT_SECRET:9f8a3c8d1e2b4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a}
     expiration-ms: ${APP_JWT_EXPIRATION_MS:86400000}

@@ -1,0 +1,3 @@
+package com.worklyn.modules.leave.dto;
+import com.worklyn.modules.leave.model.*;import java.time.*;
+public record LeaveResponse(String id,String employeeId,LeaveType leaveType,LocalDate startDate,LocalDate endDate,Integer totalDays,String reason,LeaveStatus status,String approverId,String decisionRemarks,Instant decisionDate,String workflowId,Instant createdAt){public static LeaveResponse from(LeaveRequest r){return new LeaveResponse(r.getId(),r.getEmployeeId(),r.getLeaveType(),r.getStartDate(),r.getEndDate(),r.getTotalDays(),r.getReason(),r.getStatus(),r.getApproverId(),r.getDecisionRemarks(),r.getDecisionDate(),r.getWorkflowId(),r.getCreatedAt());}}

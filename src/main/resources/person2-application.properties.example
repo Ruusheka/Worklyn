@@ -1,0 +1,7 @@
+# Merge these properties into application.properties if needed; do not replace existing settings.
+worklyn.corporate-timezone=Asia/Kolkata
+# Existing project should already configure MongoDB:
+# spring.data.mongodb.uri=mongodb://localhost:27017/worklyn
+# Redis is optional for Person 2 payroll idempotency and may be configured by Person 3:
+# spring.data.redis.host=localhost
+# spring.data.redis.port=6379
