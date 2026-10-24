@@ -9,4 +9,8 @@ public record PagedResponse<T>(List<T> content, int pageNumber, int pageSize,
         return new PagedResponse<>(page.getContent(), page.getNumber(), page.getSize(),
                 page.getTotalElements(), page.getTotalPages(), page.isLast());
     }
+
+    public static <T> PagedResponse<T> of(Page<T> page) {
+        return from(page);
+    }
 }

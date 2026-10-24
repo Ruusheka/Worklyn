@@ -37,7 +37,7 @@ export function isMockMode() {
     try {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('mock')) {
-        return urlParams.get('mock') !== 'false';
+        return urlParams.get('mock') === 'true';
       }
     } catch (e) {
       // ignore
@@ -57,8 +57,8 @@ export function isMockMode() {
     return String(import.meta.env.VITE_USE_MOCK).toLowerCase() === 'true';
   }
 
-  // Default to true for independent preview
-  return true;
+  // Default to false: production requires live Spring Boot backend
+  return false;
 }
 
 export function setMockMode(enabled) {
@@ -191,6 +191,16 @@ export async function put(path, body = {}) {
 }
 
 /**
+ * PATCH request helper
+ */
+export async function patch(path, body = {}) {
+  return apiClient(path, {
+    method: 'PATCH',
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+/**
  * DELETE request helper
  */
 export async function del(path) {
@@ -204,6 +214,7 @@ export default {
   get,
   post,
   put,
+  patch,
   del,
   ApiError,
   isMockMode,

@@ -56,13 +56,19 @@ export function Dashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [empRes, attList, leaves, rewinds, balanceRes] = await Promise.all([
+        const [empRes, attRes, leaveRes, rewindRes, balRes] = await Promise.allSettled([
           employeeApi.getEmployees({ size: 1 }),
           attendanceApi.getMyHistory(),
           leaveApi.getMyRequests(),
           rewindApi.getWorkflows(),
           leaveApi.getBalance()
         ]);
+
+        const empData = empRes.status === 'fulfilled' ? empRes.value : null;
+        const attList = Array.isArray(attRes.status === 'fulfilled' ? attRes.value : null) ? attRes.value : [];
+        const leaves = Array.isArray(leaveRes.status === 'fulfilled' ? leaveRes.value : null) ? leaveRes.value : [];
+        const rewinds = Array.isArray(rewindRes.status === 'fulfilled' ? rewindRes.value : null) ? rewindRes.value : [];
+        const balanceRes = balRes.status === 'fulfilled' ? balRes.value : null;
 
         const today = new Date().toISOString().split('T')[0];
         const todayRec = attList.find(a => a.attendanceDate === today);
@@ -76,13 +82,13 @@ export function Dashboard() {
         setLeaveBalances(balanceRes);
 
         setStats({
-          totalEmployees: empRes.totalElements || 7,
+          totalEmployees: empData?.totalElements ?? 0,
           presentToday: attList.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length,
           pendingLeaves: pendingCount,
           failedWorkflows: failedWfs.length,
         });
       } catch (err) {
-        console.error('Failed to load dashboard statistics', err);
+        console.warn('Dashboard statistics partial load notice:', err.message);
       }
     }
 

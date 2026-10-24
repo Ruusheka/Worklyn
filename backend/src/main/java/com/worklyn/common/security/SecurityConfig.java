@@ -35,14 +35,19 @@ public class SecurityConfig {
             .exceptionHandling(e -> e.authenticationEntryPoint(entryPoint).accessDeniedHandler(deniedHandler))
             .authenticationProvider(provider)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/api/v1/auth/login").permitAll()
+                .requestMatchers("/actuator/**", "/api/v1/auth/login", "/s/**").permitAll()
                 .requestMatchers("/api/v1/auth/register").hasRole("ADMIN")
                 .requestMatchers("/api/v1/auth/me").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/employees").hasAnyRole("ADMIN","HR")
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/employees/**").hasAnyRole("ADMIN","HR")
                 .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/v1/employees/**").hasAnyRole("ADMIN","HR")
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/employees").hasAnyRole("ADMIN","HR","MANAGER")
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/employees/**").authenticated()
+                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/employees/**").authenticated()
+                .requestMatchers("/api/v1/crawler/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/rewind/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/system/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/shortlinks/**").authenticated()
+                .requestMatchers("/api/v1/autocomplete/**").authenticated()
                 .requestMatchers("/api/v1/**").authenticated().anyRequest().denyAll())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

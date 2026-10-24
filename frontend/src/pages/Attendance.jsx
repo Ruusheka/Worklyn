@@ -42,14 +42,14 @@ export function Attendance() {
     setIsLoading(true);
     try {
       const data = await attendanceApi.getMyHistory();
-      setRecords(data);
+      const safeData = Array.isArray(data) ? data : [];
+      setRecords(safeData);
       const today = new Date().toISOString().split('T')[0];
-      const todayEntry = data.find(r => r.attendanceDate === today);
+      const todayEntry = safeData.find(r => r.attendanceDate === today);
       setTodayRecord(todayEntry);
       setIsCheckedIn(Boolean(todayEntry && !todayEntry.checkOutTime));
     } catch (err) {
-      console.error('Failed to load attendance', err);
-      addToast(err.message || 'Failed to fetch attendance history', 'error');
+      setRecords([]);
     } finally {
       setIsLoading(false);
     }
@@ -176,6 +176,17 @@ export function Attendance() {
           >
             Export CSV
           </Button>
+        </div>
+      </div>
+
+      {/* Backend Pending Notice */}
+      <div className="p-4 bg-[#FDF5E8] border border-[#D69A43]/30 rounded-xl flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-[#D69A43] shrink-0 mt-0.5" />
+        <div className="text-xs">
+          <p className="font-bold text-[#342522] mb-1">Attendance Tracking — Backend Pending</p>
+          <p className="text-[#89766C]">
+            The Attendance API endpoints are scheduled for a future release. Live punch logging and geofencing are not yet persisted to the backend.
+          </p>
         </div>
       </div>
 

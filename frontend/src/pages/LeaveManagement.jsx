@@ -50,15 +50,14 @@ export function LeaveManagement() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [bal, reqList] = await Promise.all([
+      const [balRes, reqRes] = await Promise.allSettled([
         leaveApi.getBalance(),
         leaveApi.getMyRequests()
       ]);
-      setBalances(bal);
-      setRequests(reqList);
+      setBalances(balRes.status === 'fulfilled' ? balRes.value : null);
+      setRequests(Array.isArray(reqRes.status === 'fulfilled' ? reqRes.value : null) ? reqRes.value : []);
     } catch (err) {
-      console.error('Failed to load leave data', err);
-      addToast(err.message || 'Failed to fetch leave records', 'error');
+      setRequests([]);
     } finally {
       setIsLoading(false);
     }
@@ -270,6 +269,17 @@ export function LeaveManagement() {
         >
           Apply For Leave
         </Button>
+      </div>
+
+      {/* Backend Pending Notice */}
+      <div className="p-4 bg-[#FDF5E8] border border-[#D69A43]/30 rounded-xl flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-[#D69A43] shrink-0 mt-0.5" />
+        <div className="text-xs">
+          <p className="font-bold text-[#342522] mb-1">Leave Management — Backend Pending</p>
+          <p className="text-[#89766C]">
+            The Leave Management API endpoints are scheduled for a future release. Applications submitted here are not yet processed by a backend service.
+          </p>
+        </div>
       </div>
 
       {/* Leave Balance Summary Cards */}

@@ -1,39 +1,20 @@
 /**
  * Distributed System & Utilities API Service
  * Owner: Person 4
- * Endpoints: /api/v1/autocomplete/*, /api/v1/shortlinks, etc.
+ * Endpoints: /api/v1/autocomplete/*, /api/v1/shortlinks, /api/v1/system/*, /api/v1/crawler/*
+ * Follows README specification Section 11 & 14.6-14.7
  */
 
-import { get, post, isMockMode } from './client.js';
-import { INITIAL_EMPLOYEES } from './mockData.js';
+import { get, post } from './client.js';
 
 export const systemApi = {
   /**
-   * Prefix suggestions for employee search
+   * Prefix suggestions for employee search (Redis + Radix Trie)
    * GET /api/v1/autocomplete/employees?q=...
    */
   async autocompleteEmployees(query) {
-    if (!query || query.trim() === '') return [];
-    if (isMockMode()) {
-      const q = query.toLowerCase();
-      return INITIAL_EMPLOYEES
-        .filter(e =>
-          e.firstName.toLowerCase().startsWith(q) ||
-          e.lastName.toLowerCase().startsWith(q) ||
-          `${e.firstName} ${e.lastName}`.toLowerCase().includes(q) ||
-          e.employeeCode.toLowerCase().includes(q)
-        )
-        .map(e => ({
-          id: e.id,
-          employeeCode: e.employeeCode,
-          name: `${e.firstName} ${e.lastName}`,
-          department: e.department,
-          designation: e.designation,
-        }))
-        .slice(0, 5);
-    }
-
-    return await get('/autocomplete/employees', { q: query });
+    if (!query || query.trim().length < 2) return [];
+    return await get('/autocomplete/employees', { q: query.trim() });
   },
 
   /**
@@ -41,16 +22,6 @@ export const systemApi = {
    * POST /api/v1/shortlinks
    */
   async createShortlink(destinationUrl) {
-    if (isMockMode()) {
-      const code = Math.random().toString(36).substring(2, 8);
-      return {
-        shortCode: code,
-        shortUrl: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173'}/s/${code}`,
-        destinationUrl,
-        createdAt: new Date().toISOString()
-      };
-    }
-
     return await post('/shortlinks', { destinationUrl });
   },
 
@@ -59,15 +30,6 @@ export const systemApi = {
    * GET /api/v1/system/hash-ring
    */
   async getHashRing() {
-    if (isMockMode()) {
-      return {
-        ringSize: 450,
-        shards: ["shard-alpha", "shard-beta", "shard-gamma"],
-        vnodesPerShard: 150,
-        status: "HEALTHY (Mock Snapshot)"
-      };
-    }
-
     return await get('/system/hash-ring');
   },
 
@@ -76,14 +38,6 @@ export const systemApi = {
    * POST /api/v1/crawler/jobs
    */
   async triggerCrawl(sourceUrl) {
-    if (isMockMode()) {
-      return {
-        status: "SUCCESS (Mock Crawl)",
-        jobsCrawled: 12,
-        sourceUrl
-      };
-    }
-
     return await post('/crawler/jobs', { sourceUrl });
   }
 };

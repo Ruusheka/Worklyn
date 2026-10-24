@@ -7,7 +7,8 @@ import {
   Search,
   Filter,
   Eye,
-  PlusCircle
+  PlusCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import Card from '../components/common/Card.jsx';
@@ -17,7 +18,6 @@ import StatusBadge from '../components/common/StatusBadge.jsx';
 import Modal from '../components/common/Modal.jsx';
 import Input from '../components/common/Input.jsx';
 import { useToast } from '../components/common/Toast.jsx';
-import { INITIAL_RECRUITMENT } from '../api/mockData.js';
 
 export function Recruitment() {
   const { hasRole } = useAuth();
@@ -27,8 +27,10 @@ export function Recruitment() {
   const [jobSearch, setJobSearch] = useState('');
   const [candidateSearch, setCandidateSearch] = useState('');
   const [isAddJobOpen, setIsAddJobOpen] = useState(false);
-  const [jobs, setJobs] = useState(INITIAL_RECRUITMENT.jobs);
-  const [candidates, setCandidates] = useState(INITIAL_RECRUITMENT.candidates);
+  const [jobs, setJobs] = useState([]);
+  const [candidates, setCandidates] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [backendUnavailable, setBackendUnavailable] = useState(true);
 
   const [newJob, setNewJob] = useState({
     title: '',
@@ -71,7 +73,7 @@ export function Recruitment() {
     setJobs([job, ...jobs]);
     setIsAddJobOpen(false);
     setNewJob({ title: '', department: 'ENGINEERING', location: '', type: 'Full-Time', openings: 1 });
-    addToast(`Job posting "${job.title}" created successfully!`, 'success');
+    addToast('Job created locally (session only — backend pending)', 'warning');
   };
 
   const jobColumns = [
@@ -183,6 +185,18 @@ export function Recruitment() {
             Post New Job
           </Button>
         )}
+      </div>
+
+      {/* Backend Pending Banner */}
+      <div className="p-4 bg-[#FDF5E8] border border-[#D69A43]/30 rounded-xl flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-[#D69A43] shrink-0 mt-0.5" />
+        <div className="text-xs">
+          <p className="font-bold text-[#342522] mb-1">Recruitment Module — Backend Pending</p>
+          <p className="text-[#89766C]">
+            The Recruitment API is planned for a future release. Job postings and candidate pipeline data cannot be persisted to the backend yet.
+            Actions taken here are session-only and will not be saved.
+          </p>
+        </div>
       </div>
 
       {/* Summary Stats */}

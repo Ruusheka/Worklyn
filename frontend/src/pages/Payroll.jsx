@@ -44,14 +44,18 @@ export function Payroll() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [summary, slip] = await Promise.all([
+      const [sumRes, slipRes, periodsRes] = await Promise.allSettled([
         payrollApi.getPeriodRecords(selectedPeriod),
-        payrollApi.getPayslip(selectedPeriod)
+        payrollApi.getPayslip(selectedPeriod),
+        payrollApi.getPeriods()
       ]);
-      setPeriodSummary(summary);
-      setPayslip(slip);
+      setPeriodSummary(sumRes.status === 'fulfilled' ? sumRes.value : null);
+      setPayslip(slipRes.status === 'fulfilled' ? slipRes.value : null);
+      setPeriodHistory(Array.isArray(periodsRes.status === 'fulfilled' ? periodsRes.value : null) ? periodsRes.value : []);
     } catch (err) {
-      console.error('Failed to load payroll data', err);
+      setPeriodSummary(null);
+      setPayslip(null);
+      setPeriodHistory([]);
     } finally {
       setIsLoading(false);
     }
@@ -90,40 +94,9 @@ export function Payroll() {
     }
   };
 
-  const periodOptions = ['2026-10', '2026-09', '2026-08', '2026-07'];
+  const [periodHistory, setPeriodHistory] = useState([]);
 
-  const historyRows = [
-    {
-      id: 'pr_sep',
-      period: '2026-09',
-      status: 'FINALIZED',
-      employees: 7,
-      gross: 647000,
-      deductions: 57400,
-      net: 589600,
-      disbursedOn: '2026-09-30'
-    },
-    {
-      id: 'pr_aug',
-      period: '2026-08',
-      status: 'FINALIZED',
-      employees: 6,
-      gross: 611000,
-      deductions: 54990,
-      net: 556010,
-      disbursedOn: '2026-08-31'
-    },
-    {
-      id: 'pr_jul',
-      period: '2026-07',
-      status: 'FINALIZED',
-      employees: 6,
-      gross: 611000,
-      deductions: 54990,
-      net: 556010,
-      disbursedOn: '2026-07-31'
-    }
-  ];
+  const periodOptions = ['2026-10', '2026-09', '2026-08', '2026-07'];
 
   const historyColumns = [
     { header: 'Pay Period', key: 'period', render: (v) => <span className="font-mono font-bold text-[#541923]">{v}</span> },
@@ -196,6 +169,17 @@ export function Payroll() {
         </div>
       </div>
 
+      {/* Backend Pending Notice */}
+      <div className="p-4 bg-[#FDF5E8] border border-[#D69A43]/30 rounded-xl flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-[#D69A43] shrink-0 mt-0.5" />
+        <div className="text-xs">
+          <p className="font-bold text-[#342522] mb-1">Payroll Processing — Backend Pending</p>
+          <p className="text-[#89766C]">
+            The Payroll Processing API endpoints (/api/v1/payroll/*) are scheduled for a future release. Batch payroll calculation is currently unavailable.
+          </p>
+        </div>
+      </div>
+
       {/* Period Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -206,21 +190,21 @@ export function Payroll() {
         <Card>
           <span className="text-xs font-bold text-[#89766C] uppercase">Total Gross Pay</span>
           <div className="mt-2 text-2xl font-extrabold text-[#342522]">
-            {isLoading ? '…' : `$${Number(periodSummary?.totalGross || 647000).toLocaleString()}`}
+            {isLoading ? '…' : `$${Number(periodSummary?.totalGross || 0).toLocaleString()}`}
           </div>
-          <p className="text-[11px] text-[#89766C] mt-1">{periodSummary?.processedEmployees || 7} employee payslips</p>
+          <p className="text-[11px] text-[#89766C] mt-1">{periodSummary?.processedEmployees || 0} employee payslips</p>
         </Card>
         <Card>
           <span className="text-xs font-bold text-[#89766C] uppercase">Total Deductions</span>
           <div className="mt-2 text-2xl font-extrabold text-[#B85C55]">
-            {isLoading ? '…' : `$${Number(periodSummary?.totalDeductions || 58230).toLocaleString()}`}
+            {isLoading ? '…' : `$${Number(periodSummary?.totalDeductions || 0).toLocaleString()}`}
           </div>
           <p className="text-[11px] text-[#89766C] mt-1">PF, TDS, PT & leave deductions</p>
         </Card>
         <Card>
           <span className="text-xs font-bold text-[#89766C] uppercase">Net Disbursement</span>
           <div className="mt-2 text-2xl font-extrabold text-[#387A58]">
-            {isLoading ? '…' : `$${Number(periodSummary?.totalNetDisbursement || 588770).toLocaleString()}`}
+            {isLoading ? '…' : `$${Number(periodSummary?.totalNetDisbursement || 0).toLocaleString()}`}
           </div>
           <p className="text-[11px] text-[#89766C] mt-1">Ready for bank transfer</p>
         </Card>
@@ -273,7 +257,7 @@ export function Payroll() {
       >
         <Table
           columns={historyColumns}
-          data={historyRows}
+          data={periodHistory}
           emptyMessage="No payroll history available."
         />
       </Card>
@@ -306,7 +290,7 @@ export function Payroll() {
           <div className="text-xs text-[#89766C] p-3 bg-white rounded-xl border border-[#EAD8C3] space-y-1.5">
             <div className="flex justify-between">
               <span>Employees to process:</span>
-              <strong className="text-[#342522]">7 active employees</strong>
+              <strong className="text-[#342522]">{periodSummary?.processedEmployees != null ? `${periodSummary.processedEmployees} active employees` : '—'}</strong>
             </div>
             <div className="flex justify-between">
               <span>Idempotency protection:</span>
@@ -314,7 +298,7 @@ export function Payroll() {
             </div>
             <div className="flex justify-between">
               <span>Estimated net disbursement:</span>
-              <strong className="text-[#387A58] font-mono">$588,770</strong>
+              <strong className="text-[#387A58] font-mono">{periodSummary?.totalNetDisbursement != null ? `$${Number(periodSummary.totalNetDisbursement).toLocaleString()}` : '—'}</strong>
             </div>
           </div>
         </div>

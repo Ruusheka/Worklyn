@@ -3,11 +3,10 @@ import { Bell, CheckCheck, Filter, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/common/Card.jsx';
 import Button from '../components/common/Button.jsx';
-import { INITIAL_NOTIFICATIONS } from '../api/mockData.js';
 
 export function Notifications() {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
 
   const categories = ['All', 'HR', 'Leave', 'Payroll', 'Recruitment'];
@@ -48,6 +47,17 @@ export function Notifications() {
             Mark All Read
           </Button>
         )}
+      </div>
+
+      {/* Live Notifications Banner */}
+      <div className="p-4 bg-[#EEF4F8] border border-[#4B6B82]/30 rounded-xl flex items-start gap-3">
+        <Bell className="w-5 h-5 text-[#4B6B82] shrink-0 mt-0.5" />
+        <div className="text-xs">
+          <p className="font-bold text-[#342522] mb-1">Live Notifications</p>
+          <p className="text-[#89766C]">
+            Notifications will appear here when the backend Notification Service is integrated. HR-REWIND workflow alerts, leave approvals, and payroll events will be surfaced in real time.
+          </p>
+        </div>
       </div>
 
       {/* Category Filters */}

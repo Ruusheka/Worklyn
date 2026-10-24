@@ -4,14 +4,16 @@ import Card from '../components/common/Card.jsx';
 import Button from '../components/common/Button.jsx';
 import StatusBadge from '../components/common/StatusBadge.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { INITIAL_PERFORMANCE } from '../api/mockData.js';
+import { useToast } from '../components/common/Toast.jsx';
 
 export function Performance() {
   const { user, hasRole } = useAuth();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('goals');
-  const { goals, reviews } = INITIAL_PERFORMANCE;
+  const goals = [];
+  const reviews = [];
 
-  const avgProgress = Math.round(goals.reduce((sum, g) => sum + g.progress, 0) / goals.length);
+  const avgProgress = goals.length > 0 ? Math.round(goals.reduce((sum, g) => sum + g.progress, 0) / goals.length) : 0;
 
   const getProgressColor = (pct) => {
     if (pct >= 80) return 'bg-[#387A58]';
@@ -32,7 +34,7 @@ export function Performance() {
         <Button
           variant="primary"
           icon={Target}
-          onClick={() => alert('Goal creation form — backend integration pending')}
+          onClick={() => addToast('Goal creation requires backend Performance API (planned for future release)', 'warning')}
         >
           Set New Goal
         </Button>
@@ -72,6 +74,17 @@ export function Performance() {
           </div>
         </div>
       </Card>
+
+      {/* Backend Pending Banner */}
+      <div className="p-4 bg-[#FDF5E8] border border-[#D69A43]/30 rounded-xl flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-[#D69A43] shrink-0 mt-0.5" />
+        <div className="text-xs">
+          <p className="font-bold text-[#342522] mb-1">Performance Management — Backend Pending</p>
+          <p className="text-[#89766C]">
+            The Performance Management API (OKR tracking, peer reviews) is planned for a future release. No live data is available yet.
+          </p>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex border-b border-[#EAD8C3] space-x-6">
